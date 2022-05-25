@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data/aquastat pressure water resources.numbers
+data/aquastat.csv
+data/igrac groundwater network.numbers
+data/scarcity.csv
+data/water_potability.csv
+map_waterStress.html

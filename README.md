@@ -3,7 +3,7 @@
 ## Water security
 ### Team Poland
 
+The following command creates an environment called `mda_project`, and downloads all dependencies from the `environment.yml` file.
 ```
-conda create --no-default-packages -n mda_project python=3.9.5
-pip install -r course_requirements.txt
+conda env create -n mda_project -f environment.yml
 ```

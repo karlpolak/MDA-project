@@ -23,18 +23,20 @@ app = dash.Dash(__name__,title='Water security',external_stylesheets=[dbc.themes
 # add this for heroku
 server = app.server
 
-# Chart
-fig = make_subplots(rows=1, cols=1)
-fig.add_trace(
-    go.Scatter(x=np.arange(0,10,1),
-               y=np.arange(0,10,1)*2 + np.random.randn(),
-               name='Example'),
-    row=1, col=1)
-fig.update_layout(width=1500)
+# dataset
+dataset = px.data.gapminder()  # some built-in data for now
 
-# Country Options
-dropdown = dcc.Dropdown(
-    id='id_country',
+
+### Tab 1: bubble map (per region or whole world)
+# Bubble map
+df = dataset.query("year==2007")
+bubble_map = px.scatter_geo(df, locations="iso_alpha", color="continent",
+                     hover_name="country", size="pop",
+                     projection="natural earth")
+
+# Region Options 
+dropdown_region = dcc.Dropdown(
+    id='id_region',
     options=[{"label":'Africa','value':'Africa'},
              {"label":'Central & East Asia','value':'Central & East Asia'},
              {"label":'Southwest Asia and Middle East','value':'Southwest Asia and Middle East'},
@@ -52,18 +54,40 @@ slider = dcc.Slider(
         tooltip={"placement": "bottom", "always_visible": True}
     )
 
-# Text input (if any)
-# text = dbc.InputGroup([
-#         dbc.Input(id='id_start_date',value="2020-01-01", type="text")],)
+### Tab 2: line chart per country
+# line chart
+df = dataset.query("country=='Canada'")
+line_chart = px.line(df, x="year", y="lifeExp", title='Life expectancy in Canada')
 
-# Start Date, End Date & Number of Mixtures
-input_groups = dbc.Row(dbc.Col(
+# Country options
+dropdown_country = dcc.Dropdown(
+    id='id_country',
+    options=[{"label":'Afghanistan','value':'Afghanistan'},
+             {"label":'Finland','value':'Finland'},
+             {"label":'Morocco','value':'Morocco'},
+             ],
+    value='Afghanistan')
+
+# History options
+range_slider = dcc.RangeSlider(id='id_range', min=1997, max=2032, step=5, value=[1997, 2018],
+                tooltip={"placement": "bottom", "always_visible": True})
+
+# Input bubble map
+input_bubble = dbc.Row(dbc.Col(
     html.Div([
-    dropdown,
+    dropdown_region,
     html.Br(),
     slider]
 )))
 
+# Input line chart
+input_line = dbc.Row(dbc.Col(
+    html.Div([
+    dropdown_country,
+    html.Br(),
+    range_slider]
+)))
+ 
 app.layout = dbc.Container(
     [
         html.Div(children=[html.H1(children='Water Security'),
@@ -73,11 +97,16 @@ app.layout = dbc.Container(
         html.Hr(),
         dbc.Row(
             [
-                dbc.Col(input_groups, md=3),
-                dbc.Col(dcc.Graph(id="id_graph",figure=fig), md=9),
+                dbc.Col(input_bubble, md=3),
+                dbc.Col(dcc.Graph(id="id_bubble_map",figure=bubble_map), md=9),
             ],
-            align="center",
+            align="center"
         ),
+        html.Hr(),
+        dbc.Row([
+                dbc.Col(input_line, md=3),
+                dbc.Col(dcc.Graph(id="id_line_chart",figure=line_chart), md=9),
+            ])
     ],
     fluid=True,
 )

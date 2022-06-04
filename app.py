@@ -14,7 +14,7 @@ import pandas as pd
 
 #from graphs import make_plot
 import plotly.express as px
-from pyparsing import col  # imported this to make line charts
+from pyparsing import col
 
 
 
@@ -73,7 +73,7 @@ range_slider = dcc.RangeSlider(id='id_range',
                             min=1997, 
                             max=2032, 
                             step=5, 
-                            value=[1997, 2018],
+                            value=[1997, 2017],
                             tooltip={"placement": "bottom", "always_visible": True},
                             marks=None)
 
@@ -92,14 +92,15 @@ input_line = dbc.Row(dbc.Col(
     html.Br(),
     range_slider]
 )))
- 
+
 app.layout = dbc.Container(
     [
         html.Div(children=[html.H1(children='Water Security'),
-                           html.H2(children='MDA Team Poland'),
-                           html.H4(children='...',id='id_title')],
+                           html.H2(children='MDA Team Poland')],
                  style={'textAlign':'center','color':'black'}),
         html.Hr(),
+        html.Div(children=[html.H4(children='...',id='id_title_bubble')],
+                 style={'textAlign':'center','color':'black'}),
         dbc.Row(
             [
                 dbc.Col(input_bubble, md=3),
@@ -108,6 +109,8 @@ app.layout = dbc.Container(
             align="center"
         ),
         html.Hr(),
+        html.Div(children=[html.H4(children='...',id='id_title_line')],
+                 style={'textAlign':'center','color':'black'}),
         dbc.Row([
                 dbc.Col(input_line, md=3),
                 dbc.Col(dcc.Graph(id="id_line_chart",figure=line_chart), md=9),
@@ -119,13 +122,22 @@ app.layout = dbc.Container(
 )
 
 @app.callback(
-    Output('id_title','children'),
-    [Input('id_country', 'value'),
+    Output('id_title_bubble','children'),
+    [Input('id_region', 'value'),
     Input('id_year', 'value')
      ]
 )
-def update_chart(country, year):
-    return 'Water stress for ' + country + ' in ' + str(year)
+def update_chart(region, year):
+    return 'Water stress for ' + region + ' in ' + str(year)
+
+@app.callback(
+    Output('id_title_line','children'),
+    [Input('id_country', 'value'),
+    Input('id_range', 'value')
+     ]
+)
+def update_chart(country, range):
+    return 'Water stress for ' + country + ' from ' + str(range[0]) + ' to ' + str(range[1])
 
 if __name__ == '__main__':
     app.run_server(debug=True)

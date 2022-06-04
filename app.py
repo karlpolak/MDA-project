@@ -69,8 +69,13 @@ dropdown_country = dcc.Dropdown(
     value='Afghanistan')
 
 # History options
-range_slider = dcc.RangeSlider(id='id_range', min=1997, max=2032, step=5, value=[1997, 2018],
-                tooltip={"placement": "bottom", "always_visible": True})
+range_slider = dcc.RangeSlider(id='id_range',
+                            min=1997, 
+                            max=2032, 
+                            step=5, 
+                            value=[1997, 2018],
+                            tooltip={"placement": "bottom", "always_visible": True},
+                            marks=None)
 
 # Input bubble map
 input_bubble = dbc.Row(dbc.Col(
@@ -106,7 +111,9 @@ app.layout = dbc.Container(
         dbc.Row([
                 dbc.Col(input_line, md=3),
                 dbc.Col(dcc.Graph(id="id_line_chart",figure=line_chart), md=9),
-            ])
+            ],
+            align="center"
+        )
     ],
     fluid=True,
 )

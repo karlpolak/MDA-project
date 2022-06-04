@@ -75,6 +75,7 @@ range_slider = dcc.RangeSlider(id='id_range',
                             step=5, 
                             value=[1997, 2017],
                             tooltip={"placement": "bottom", "always_visible": True},
+                            pushable=2,
                             marks=None)
 
 # Input bubble map

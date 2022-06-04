@@ -56,8 +56,11 @@ slider = dcc.Slider(
 
 ### Tab 2: line chart per country
 # line chart
-df = dataset.query("country=='Canada'")
-line_chart = px.line(df, x="year", y="lifeExp", title='Life expectancy in Canada')
+country = 'Afghanistan'
+start_date = 1957
+end_date = 1992
+df = dataset.query(f"country=='{country}' & year>={start_date} & year <={end_date}")
+line_chart = px.line(df, x="year", y="gdpPercap", title='GDP per capita in {country}'.format(country="'Afghanistan'"))
 
 # Country options
 dropdown_country = dcc.Dropdown(
@@ -70,10 +73,10 @@ dropdown_country = dcc.Dropdown(
 
 # History options
 range_slider = dcc.RangeSlider(id='id_range',
-                            min=1997, 
-                            max=2032, 
+                            min=1952, 
+                            max=2007, 
                             step=5, 
-                            value=[1997, 2017],
+                            value=[1957, 1987],
                             tooltip={"placement": "bottom", "always_visible": True},
                             pushable=2,
                             marks=None)
@@ -133,12 +136,17 @@ def update_chart(region, year):
 
 @app.callback(
     Output('id_title_line','children'),
+    Output('id_line_chart','figure'),
     [Input('id_country', 'value'),
     Input('id_range', 'value')
      ]
 )
 def update_chart(country, range):
-    return 'Water stress for ' + country + ' from ' + str(range[0]) + ' to ' + str(range[1])
+    start_date = range[0]
+    end_date = range[1]
+    df = dataset.query(f"country=='{country}' & year>={start_date} & year <={end_date}")
+    line_chart = px.line(df, x="year", y="gdpPercap", title=f"GDP per capita in {country}")
+    return 'Water stress for ' + country + ' from ' + str(range[0]) + ' to ' + str(range[1]), line_chart
 
 if __name__ == '__main__':
     app.run_server(debug=True)

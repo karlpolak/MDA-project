@@ -18,7 +18,7 @@ from pyparsing import col
 
 
 
-app = dash.Dash(__name__,title='Water security',external_stylesheets=[dbc.themes.CERULEAN],serve_locally = False)
+app = dash.Dash(__name__,title='Water security',external_stylesheets=[dbc.themes.CERULEAN],serve_locally = True)
 
 # add this for heroku
 server = app.server
@@ -29,37 +29,46 @@ dataset = px.data.gapminder()  # some built-in data for now
 
 ### Tab 1: bubble map (per region or whole world)
 # Bubble map
-df = dataset.query("year==2007")
-bubble_map = px.scatter_geo(df, locations="iso_alpha", color="continent",
-                     hover_name="country", size="pop",
-                     projection="natural earth")
+default_region = 'Asia'
+default_year = 2007
+df = dataset.query(f"continent=='{default_region}' & year=={default_year}")
+bubble_map = px.scatter_geo(df, 
+                        locations="iso_alpha", 
+                        color="continent",
+                        hover_name="country", 
+                        size="gdpPercap",
+                        projection="natural earth")  # TODO maybe add some animation (properties animation_frame & animation_group)
 
 # Region Options 
 dropdown_region = dcc.Dropdown(
     id='id_region',
-    options=[{"label":'Africa','value':'Africa'},
-             {"label":'Central & East Asia','value':'Central & East Asia'},
-             {"label":'Southwest Asia and Middle East','value':'Southwest Asia and Middle East'},
+    options=[{"label":'All','value':'All'},
+             {"label":'Asia','value':'Asia'},
+             {"label":'Europe','value':'Europe'},
+             {"label":'Africa','value':'Africa'},
+             {"label":'Americas','value':'Americas'},
+             {"label":'Oceania','value':'Oceania'}
              ],
-    value='Africa')
+    value='All',
+    searchable=False)
 
 # Year Options
 slider = dcc.Slider(
         id='id_year',
-        min=1992,
-        max=2032,
+        min=1952,
+        max=2007,
         step=5,
-        value=2017,
+        value=1997,
         marks=None,
         tooltip={"placement": "bottom", "always_visible": True}
-    )
+    )   # TODO make slider values more modular (minimum & maximum from 'year' in dataset)
 
 ### Tab 2: line chart per country
 # line chart
-country = 'Afghanistan'
+default_country = 'Afghanistan'
 start_date = 1957
 end_date = 1992
-df = dataset.query(f"country=='{country}' & year>={start_date} & year <={end_date}")
+df = dataset.query(f"country=='{default_country}' & year>={start_date} & year <={end_date}")
 line_chart = px.line(df, x="year", y="gdpPercap", title='GDP per capita in {country}'.format(country="'Afghanistan'"))
 
 # Country options
@@ -69,7 +78,8 @@ dropdown_country = dcc.Dropdown(
              {"label":'Finland','value':'Finland'},
              {"label":'Morocco','value':'Morocco'},
              ],
-    value='Afghanistan')
+    value='Afghanistan',
+    searchable=False)
 
 # History options
 range_slider = dcc.RangeSlider(id='id_range',
@@ -79,7 +89,7 @@ range_slider = dcc.RangeSlider(id='id_range',
                             value=[1957, 1987],
                             tooltip={"placement": "bottom", "always_visible": True},
                             pushable=2,
-                            marks=None)
+                            marks=None) # TODO make slider values more modular (e.g. min & max from the 'year' column of the dataset)
 
 # Input bubble map
 input_bubble = dbc.Row(dbc.Col(
@@ -127,12 +137,27 @@ app.layout = dbc.Container(
 
 @app.callback(
     Output('id_title_bubble','children'),
+    Output('id_bubble_map','figure'),
     [Input('id_region', 'value'),
     Input('id_year', 'value')
      ]
 )
-def update_chart(region, year):
-    return 'Water stress for ' + region + ' in ' + str(year)
+def update_map(region, year):
+    if region == 'All' or region is None:
+        df = dataset.query(f"year=={year}")
+        title = f"Global water stress in {year}"
+        
+    else:
+        df = dataset.query(f"continent=='{region}' & year=={year}")
+        title = f"Water stress for {region} in {year}"
+
+    bubble_map = px.scatter_geo(df, 
+                        locations="iso_alpha", 
+                        color="continent",
+                        hover_name="country", 
+                        size="gdpPercap",
+                        projection="natural earth")  # TODO maybe add some animation (properties animation_frame & animation_group)
+    return title, bubble_map
 
 @app.callback(
     Output('id_title_line','children'),
@@ -142,11 +167,22 @@ def update_chart(region, year):
      ]
 )
 def update_chart(country, range):
+    if country is None :
+        country = default_country
+
     start_date = range[0]
     end_date = range[1]
+
+    # always make sure range for plot is at least 5 years
+    if start_date == end_date:
+        new_start_date = start_date - 5
+        new_end_date = end_date + 5
+        start_date = max(new_start_date, 1952)  # TODO make 1952 more modular (minimum of years in dataset)
+        end_date = min(new_end_date, 2007)  # TODO make 2007 more modular (minimum of years in dataset)
+
     df = dataset.query(f"country=='{country}' & year>={start_date} & year <={end_date}")
     line_chart = px.line(df, x="year", y="gdpPercap", title=f"GDP per capita in {country}")
-    return 'Water stress for ' + country + ' from ' + str(range[0]) + ' to ' + str(range[1]), line_chart
+    return f"Water stress for {country} from {start_date} to {end_date}", line_chart
 
 if __name__ == '__main__':
     app.run_server(debug=True)

@@ -86,13 +86,15 @@ class myVAR:
 
         # setting indices
         idx=ts_train_diff.index.values[-p:][0]
-        # Forecast
-        fc = fit.forecast(y=forecast_input, steps=steps)
-        ts_forecast_diff=pd.DataFrame(fc, index=range(idx+1,idx+steps*1+1,1), columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
+        # Get forecasted values with prediction intervals
+        fc_mean,fc_lower,fc_upper = fit.forecast_interval(y=forecast_input, steps=steps)
+        ts_fc_diff=pd.DataFrame(fc_mean, index=range(idx+1,idx+steps*1+1,1), columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
+        ts_fc_lower_diff=pd.DataFrame(fc_lower, index=range(idx+1,idx+steps*1+1,1), columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
+        ts_fc_upper_diff=pd.DataFrame(fc_upper, index=range(idx+1,idx+steps*1+1,1), columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
         if plot:
             fit.plot_forecast(steps);
-        # self.ts_forecast_diff=ts_forecast_diff
-        return ts_forecast_diff
+        # self.ts_fc_diff=ts_fc_diff
+        return ts_fc_diff,ts_fc_lower_diff,ts_fc_upper_diff
 
     def get_forecast_error(self,ts_forecast):
         """get a table with various forecast errors"""
@@ -197,18 +199,26 @@ def plot_vars(ts):
         ax.tick_params(labelsize=6)
     plt.tight_layout();
 
-def plot_comparison(ts1,ts2,steps,name):
+def plot_comparison(obj,steps,name,figsize=(10,6)):
     """plot a comparison between two series"""
-    data=ts1
-    results=ts2
-    fig, axes = plt.subplots(nrows=int(np.ceil(len(data.columns)/2)),ncols=2, dpi=150,figsize=(10,6))
+    data=obj.ts
+    data_train=obj.ts_train
+    results=obj.ts_results
+    forecast=pd.concat([data_train[-1:],obj.ts_forecast[:steps]])
+    forecast.lower=pd.concat([data_train[-1:],obj.ts_forecast.lower[:steps]])
+    forecast.upper=pd.concat([data_train[-1:],obj.ts_forecast.upper[:steps]])
+    fig, axes = plt.subplots(nrows=int(np.ceil(len(data.columns)/2)),ncols=2, dpi=150,figsize=figsize)
     for i, (col,ax) in enumerate(zip(data.columns, axes.flatten())):
-        results[col].plot(legend=True, ax=ax,label='Forecast',linestyle='--').autoscale(axis='x',tight=True)
+        forecast[col].plot(legend=True, ax=ax,label='Forecast',linestyle='--',color='r').autoscale(axis='x',tight=True)
+        forecast.lower[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Lower',linestyle=':',color='r').autoscale(axis='x',tight=True)
+        forecast.upper[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Upper',linestyle=':',color='r').autoscale(axis='x',tight=True)
         data[col].plot(legend=True, ax=ax,label='Data');
+        ax.fill_between(forecast[col].index, forecast.lower[col],forecast.upper[col], color='r', alpha=0.2,label='Forecast 95% interval')
         ax.set_title(col + ": Comparison")
         ax.xaxis.set_ticks_position('none')
         ax.yaxis.set_ticks_position('none')
         ax.spines["top"].set_alpha(0)
-        # ax.set_xlim([self.ts_train.index[-1],self.ts_train.index[-1]+steps])
+        # ax.set_xlim([data.index[0],forecast.index[0]+steps])
+        # ax.set_ylim([np.amin(results[col][0]),np.amax(results[col])])
     fig.suptitle(name)
     plt.tight_layout();

@@ -19,7 +19,7 @@ from pyparsing import col
 from app_data import dataset, countries
 
 
-app = dash.Dash(__name__,title='Water security',external_stylesheets=[dbc.themes.CERULEAN],serve_locally = True)
+app = dash.Dash(__name__,title='MDA Poland | Water Security',external_stylesheets=[dbc.themes.CERULEAN],serve_locally = True)
 app._favicon = ("assets/favicon.ico")
 
 # add this for heroku
@@ -77,7 +77,7 @@ dropdown_region = dcc.Dropdown(
 
 # Year Options
 slider = dcc.Slider(
-        id='id_year',
+        # id='id_year', # BUG:DO NOT SET AN ID FOR THIS, IF YOU WANT, MAKE SURE YOU HAVE ONLY 1 OF THIS 'SLIDER' ON THE PAGE
         min=2004,
         max=2032,
         step=1,
@@ -87,12 +87,50 @@ slider = dcc.Slider(
     )   # TODO make slider values more modular (minimum & maximum from 'year' in dataset)
 
 ### Tab 3: line chart per country
-# line chart
+
+# line chart with bands
 default_country = 'China'
 start_date = 2004
 end_date = 2032
 df = dataset.query(f"Country=='{default_country}' & Year>={start_date} & Year<={end_date}")
-line_chart = px.line(df, x="Year", y="Water stress", title=f"Water stress in '{default_country}'")
+line_chart_bands = go.Figure([
+    go.Scatter(
+        name='Mean forecast',
+        x=df['Year'],
+        y=df['Water stress'],
+        mode='lines',
+        line=dict(color='rgb(31, 119, 180)'),
+        showlegend=False
+    ),
+    go.Scatter(
+        name='95% upper',
+        x=df['Year'],
+        y=df['Water stress_upper'],
+        mode='lines',
+        marker=dict(color="#444"),
+        line=dict(width=0),
+        showlegend=False
+    ),
+    go.Scatter(
+        name='95% lower',
+        x=df['Year'],
+        y=df['Water stress_lower'],
+        marker=dict(color="#444"),
+        line=dict(width=0),
+        mode='lines',
+        fillcolor='rgba(68, 68, 68, 0.3)',
+        fill='tonexty',
+        showlegend=False
+    )
+])
+line_chart_bands.update_layout(
+    yaxis_title='Water Stress (%)',
+    title=f"Water stress in '{default_country}'",
+    hovermode="x"
+)
+
+
+
 
 # Country options
 dropdown_country = dcc.Dropdown(
@@ -100,6 +138,8 @@ dropdown_country = dcc.Dropdown(
     options=[{"label": country, 'value': country} for country in countries],
     value='China',
     searchable=False)
+
+
 
 # History options
 range_slider = dcc.RangeSlider(id='id_range',
@@ -164,10 +204,10 @@ app.layout = dbc.Container(
                  style={'textAlign':'center','color':'black'}),
         dbc.Row([
                 dbc.Col(input_line, md=3),
-                dbc.Col(dcc.Graph(id="id_line_chart",figure=line_chart), md=9),
+                dbc.Col(dcc.Graph(id="id_line_chart_bands",figure=line_chart_bands), md=9),
             ],
             align="center"
-        )
+        ),
     ],
     fluid=True,
 )
@@ -199,7 +239,7 @@ def update_map(region, year):
 
 @app.callback(
     Output('id_title_line','children'),
-    Output('id_line_chart','figure'),
+    Output('id_line_chart_bands','figure'),
     [Input('id_country', 'value'),
     Input('id_range', 'value')
      ]
@@ -219,8 +259,47 @@ def update_chart(country, range):
         end_date = min(new_end_date, 2032)  # TODO make 2007 more modular (minimum of years in dataset)
 
     df = dataset.query(f"Country=='{country}' & Year>={start_date} & Year <={end_date}")
-    line_chart = px.line(df, x="Year", y="Water stress", title=f"Water stress in {country}")
-    return f"Water stress for {country} from {start_date} to {end_date}", line_chart
+    # line chart with bands
+    line_chart_bands = go.Figure([
+        go.Scatter(
+            name='Mean forecast',
+            x=df['Year'],
+            y=df['Water stress'],
+            mode='lines',
+            line=dict(width=2,color='rgba(47, 164, 231,1)'),
+            showlegend=False
+        ),
+        go.Scatter(
+            name='95% upper',
+            x=df['Year'],
+            y=df['Water stress_upper'],
+            mode='lines',
+            marker=dict(color="rgba(255,103,92,0.8)"),
+            line=dict(width=0.5,dash='dot'),
+            showlegend=False
+        ),
+        go.Scatter(
+            name='95% lower',
+            x=df['Year'],
+            y=df['Water stress_lower'],
+            marker=dict(color="rgba(255,103,92,0.8)"),
+            line=dict(width=0.5,dash='dot'),
+            mode='lines',
+            fillcolor='rgba(255,103,92,0.3)',
+            fill='tonexty',
+            showlegend=False
+        )
+    ])
+    line_chart_bands.update_layout(
+        yaxis_title='Water stress (%)',
+        title=f"Water stress in '{country}'",
+        title_x=0.5,
+        hovermode="x",
+    )
+
+
+
+    return f"Water stress for {country} from {start_date} to {end_date}", line_chart_bands
 
 if __name__ == '__main__':
     app.run_server(debug=True)

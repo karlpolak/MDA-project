@@ -72,3 +72,5 @@ for country in countries:
 
 # our bubble cannot handle negative values => negative water stress is essentially no water stress (zero) after all
 dataset.loc[dataset['Water stress']<0,'Water stress'] = 0
+dataset.loc[dataset['Water stress_lower']<0,'Water stress_lower'] = 0
+dataset.loc[dataset['Water stress_upper']<0,'Water stress_upper'] = 0

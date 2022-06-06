@@ -24,19 +24,20 @@ app = dash.Dash(__name__,title='Water security',external_stylesheets=[dbc.themes
 server = app.server
 
 # dataset
-dataset = px.data.gapminder()  # some built-in data for now
+# dataset = px.data.gapminder()  # some built-in data for now
+from app_data import dataset
 
 
 ### Tab 1: bubble map (per region or whole world)
 # Bubble map
 default_region = 'Asia'
 default_year = 2007
-df = dataset.query(f"continent=='{default_region}' & year=={default_year}")
+df = dataset.query(f"Continent=='{default_region}' & Year=={default_year}")
 bubble_map = px.scatter_geo(df, 
                         locations="iso_alpha", 
-                        color="continent",
-                        hover_name="country", 
-                        size="gdpPercap",
+                        color="Continent",
+                        hover_name="Country", 
+                        size="Water stress",
                         projection="natural earth")  # TODO maybe add some animation (properties animation_frame & animation_group)
 
 # Region Options 
@@ -55,10 +56,10 @@ dropdown_region = dcc.Dropdown(
 # Year Options
 slider = dcc.Slider(
         id='id_year',
-        min=1952,
-        max=2007,
-        step=5,
-        value=1997,
+        min=2004,
+        max=2032,
+        step=1,
+        value=2017,
         marks=None,
         tooltip={"placement": "bottom", "always_visible": True}
     )   # TODO make slider values more modular (minimum & maximum from 'year' in dataset)
@@ -66,10 +67,10 @@ slider = dcc.Slider(
 ### Tab 2: line chart per country
 # line chart
 default_country = 'Afghanistan'
-start_date = 1957
-end_date = 1992
-df = dataset.query(f"country=='{default_country}' & year>={start_date} & year <={end_date}")
-line_chart = px.line(df, x="year", y="gdpPercap", title='GDP per capita in {country}'.format(country="'Afghanistan'"))
+start_date = 2004
+end_date = 2032
+df = dataset.query(f"Country=='{default_country}' & Year>={start_date} & Year<={end_date}")
+line_chart = px.line(df, x="Year", y="Water stress", title=f"Water stress in '{default_country}'")
 
 # Country options
 dropdown_country = dcc.Dropdown(
@@ -83,10 +84,10 @@ dropdown_country = dcc.Dropdown(
 
 # History options
 range_slider = dcc.RangeSlider(id='id_range',
-                            min=1952, 
-                            max=2007, 
-                            step=5, 
-                            value=[1957, 1987],
+                            min=2004, 
+                            max=2032, 
+                            step=2, 
+                            value=[2010, 2022],
                             tooltip={"placement": "bottom", "always_visible": True},
                             pushable=2,
                             marks=None) # TODO make slider values more modular (e.g. min & max from the 'year' column of the dataset)
@@ -144,18 +145,18 @@ app.layout = dbc.Container(
 )
 def update_map(region, year):
     if region == 'All' or region is None:
-        df = dataset.query(f"year=={year}")
+        df = dataset.query(f"Year=={year}")
         title = f"Global water stress in {year}"
         
     else:
-        df = dataset.query(f"continent=='{region}' & year=={year}")
+        df = dataset.query(f"Continent=='{region}' & Year=={year}")
         title = f"Water stress for {region} in {year}"
 
     bubble_map = px.scatter_geo(df, 
                         locations="iso_alpha", 
-                        color="continent",
-                        hover_name="country", 
-                        size="gdpPercap",
+                        color="Continent",
+                        hover_name="Country", 
+                        size="Water stress",
                         projection="natural earth")  # TODO maybe add some animation (properties animation_frame & animation_group)
     return title, bubble_map
 
@@ -167,7 +168,7 @@ def update_map(region, year):
      ]
 )
 def update_chart(country, range):
-    if country is None :
+    if country is None:
         country = default_country
 
     start_date = range[0]
@@ -175,13 +176,13 @@ def update_chart(country, range):
 
     # always make sure range for plot is at least 5 years
     if start_date == end_date:
-        new_start_date = start_date - 5
-        new_end_date = end_date + 5
-        start_date = max(new_start_date, 1952)  # TODO make 1952 more modular (minimum of years in dataset)
-        end_date = min(new_end_date, 2007)  # TODO make 2007 more modular (minimum of years in dataset)
+        new_start_date = start_date - 2
+        new_end_date = end_date + 2
+        start_date = max(new_start_date, 2004)  # TODO make 1952 more modular (minimum of years in dataset)
+        end_date = min(new_end_date, 2032)  # TODO make 2007 more modular (minimum of years in dataset)
 
-    df = dataset.query(f"country=='{country}' & year>={start_date} & year <={end_date}")
-    line_chart = px.line(df, x="year", y="gdpPercap", title=f"GDP per capita in {country}")
+    df = dataset.query(f"Country=='{country}' & Year>={start_date} & Year <={end_date}")
+    line_chart = px.line(df, x="Year", y="Water stress", title=f"Water stress in {country}")
     return f"Water stress for {country} from {start_date} to {end_date}", line_chart
 
 if __name__ == '__main__':

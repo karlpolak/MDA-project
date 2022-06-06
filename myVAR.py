@@ -32,7 +32,7 @@ class myVAR:
         self.ts_diff_order=order
         ts_diff=ts
         for i in range(1,order+1,1):
-            nsVars=adfuller_test(ts_diff)
+            nsVars=adfuller_test(ts_diff,verbose=verbose)
             nsCount=len(nsVars)
             if nsCount > 0:
                 ts_diff= ts_diff.diff().dropna()
@@ -58,12 +58,12 @@ class myVAR:
         return ts_inv
 
     def inspect_lag(self,maxlag=10):
-        """inspect AIC for different lag values until maxlag"""
+        """inspect information criteria for different lag values until maxlag"""
         self.model = VAR(self.ts_train_diff)
         for i in range(1,maxlag+1,1):
             try:
                 fit = self.model.fit(i)
-                print(i, fit.aic)
+                print(i, fit.info_criteria)
             except:
                 print('ERROR: CANNOT FIT DURING LAG INSPECTION')
                 pass
@@ -78,19 +78,27 @@ class myVAR:
     def get_forecast_diff(self,steps,plot=True):
         """differenced forecast for input number of steps. With optional plot"""
         p=self.p
+        nobs=self.nobs
         ts_train_diff=self.ts_train_diff
         fit=self.fit
         # Input data for forecasting
         forecast_input = ts_train_diff.values[-p:]
-        forecast_input
 
         # setting indices
-        idx=ts_train_diff.index.values[-p:][0]
+        idx=ts_train_diff.index.values[-nobs:][0]
         # Get forecasted values with prediction intervals
         fc_mean,fc_lower,fc_upper = fit.forecast_interval(y=forecast_input, steps=steps)
-        ts_fc_diff=pd.DataFrame(fc_mean, index=range(idx+1,idx+steps*1+1,1), columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
-        ts_fc_lower_diff=pd.DataFrame(fc_lower, index=range(idx+1,idx+steps*1+1,1), columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
-        ts_fc_upper_diff=pd.DataFrame(fc_upper, index=range(idx+1,idx+steps*1+1,1), columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
+        
+        ts_fc_diff=pd.DataFrame(fc_mean, 
+            index=range(idx+nobs,idx+nobs+steps,1), 
+            columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
+        ts_fc_lower_diff=pd.DataFrame(fc_lower, 
+            index=range(idx+nobs,idx+nobs+steps,1), 
+            columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
+        ts_fc_upper_diff=pd.DataFrame(fc_upper, 
+            index=range(idx+nobs,idx+nobs+steps,1), 
+            columns=ts_train_diff.columns + f'_d{self.ts_diff_order}')
+
         if plot:
             fit.plot_forecast(steps);
         # self.ts_fc_diff=ts_fc_diff
@@ -99,23 +107,17 @@ class myVAR:
     def get_forecast_error(self,ts_forecast):
         """get a table with various forecast errors"""
         ts_test = self.ts_test
-        result=pd.DataFrame(columns=ts_test.columns,index=['ME','MPE','MAE','MAPE','RMSE','Corr','Min/Max'])
+        result_test=pd.DataFrame(columns=ts_test.columns,index=['ME','MPE','MAE','MAPE','RMSE'])
         for col in ts_test.columns:
             test=ts_test[col]
             forecast=ts_forecast[col][:self.nobs]
-            me = np.mean(forecast - test)             # ME
-            mpe = np.mean((forecast - test)/test)   # MPE
-            mae = np.mean(np.abs(forecast - test))    # MAE
-            mape = np.mean(np.abs(forecast - test)/np.abs(test))  # MAPE
-            rmse = np.mean((forecast - test)**2)**.5  # RMSE
-            corr = np.corrcoef(forecast, test)[0,1]   # corr
-            mins = np.amin(np.hstack([forecast[:,None], 
-                                    test[:,None]]), axis=1)
-            maxs = np.amax(np.hstack([forecast[:,None], 
-                                    test[:,None]]), axis=1)
-            minmax = 1 - np.mean(mins/maxs)             # minmax
-            result[col]=[mape,me, mae, mpe, rmse, corr,minmax]
-        return result
+            me_test = np.mean(forecast - test)             # ME
+            mpe_test = np.mean((forecast - test)/test)   # MPE
+            mae_test = np.mean(np.abs(forecast - test))    # MAE
+            mape_test = np.mean(np.abs(forecast - test)/np.abs(test))  # MAPE
+            rmse_test = np.sqrt(np.mean((forecast - test)**2))  # RMSE
+            result_test[col]=[mpe_test,mape_test,me_test,mae_test,rmse_test]
+        return result_test
 
     def granger_matrix(self, maxlag=1,test='ssr_chi2test', verbose=False):
         """granger's causality matrix"""  
@@ -213,8 +215,8 @@ def plot_comparison(obj,steps,name,figsize=(10,6),interval=True):
         forecast[col].plot(legend=True, ax=ax,label='Forecast',linestyle='--',color='r').autoscale(axis='x',tight=True)
         data[col].plot(legend=True, ax=ax,label='Data');
         if interval:
-            forecast.lower[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Lower',linestyle=':',color='r').autoscale(axis='x',tight=True)
-            forecast.upper[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Upper',linestyle=':',color='r').autoscale(axis='x',tight=True)
+            forecast.lower[col].plot(legend=True, ax=ax,label='95% Forecast Interval',linestyle=':',color='r').autoscale(axis='x',tight=True)
+            forecast.upper[col].plot(legend=True, ax=ax,linestyle=':',color='r').autoscale(axis='x',tight=True)
             ax.fill_between(forecast[col].index, forecast.lower[col],forecast.upper[col], color='r', alpha=0.2,label='Forecast 95% interval')
         ax.set_title(col + ": Comparison")
         ax.xaxis.set_ticks_position('none')

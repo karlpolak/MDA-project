@@ -65,7 +65,7 @@ class myVAR:
                 fit = self.model.fit(i)
                 print(i, fit.aic)
             except:
-                print('ERROR')
+                print('ERROR: CANNOT FIT DURING LAG INSPECTION')
                 pass
 
     def get_fit(self,p):
@@ -195,21 +195,20 @@ def plot_vars(ts):
         ax.yaxis.set_ticks_position('none')
         ax.spines["top"].set_alpha(0)
         ax.tick_params(labelsize=6)
-
     plt.tight_layout();
 
-def plot_comparison(ts1,ts2,steps):
+def plot_comparison(ts1,ts2,steps,name):
     """plot a comparison between two series"""
     data=ts1
     results=ts2
-    fig, axes = plt.subplots(nrows=int(np.ceil(len(data.columns)/2)),ncols=2, dpi=150,figsize=(8,5))
+    fig, axes = plt.subplots(nrows=int(np.ceil(len(data.columns)/2)),ncols=2, dpi=150,figsize=(10,6))
     for i, (col,ax) in enumerate(zip(data.columns, axes.flatten())):
         results[col].plot(legend=True, ax=ax,label='Forecast',linestyle='--').autoscale(axis='x',tight=True)
         data[col].plot(legend=True, ax=ax,label='Data');
-        ax.set_title(col + ": Forecast vs Data")
+        ax.set_title(col + ": Comparison")
         ax.xaxis.set_ticks_position('none')
         ax.yaxis.set_ticks_position('none')
         ax.spines["top"].set_alpha(0)
-        # ax.tick_params(labelsize=6)
         # ax.set_xlim([self.ts_train.index[-1],self.ts_train.index[-1]+steps])
+    fig.suptitle(name)
     plt.tight_layout();

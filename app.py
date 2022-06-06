@@ -25,11 +25,11 @@ app._favicon = ("assets/favicon.ico")
 # add this for heroku
 server = app.server
 
-# dataset
-# dataset = px.data.gapminder()  # some built-in data for now
+### Tab 1: bubble map (colour per cluster)
 
 
-### Tab 1: bubble map (per region or whole world)
+
+### Tab 2: bubble map (per region or whole world)
 # Bubble map
 default_region = 'Asia'
 default_year = 2007
@@ -66,7 +66,7 @@ slider = dcc.Slider(
         tooltip={"placement": "bottom", "always_visible": True}
     )   # TODO make slider values more modular (minimum & maximum from 'year' in dataset)
 
-### Tab 2: line chart per country
+### Tab 3: line chart per country
 # line chart
 default_country = 'China'
 start_date = 2004

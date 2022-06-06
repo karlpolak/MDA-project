@@ -20,6 +20,7 @@ from app_data import dataset, countries
 
 
 app = dash.Dash(__name__,title='Water security',external_stylesheets=[dbc.themes.CERULEAN],serve_locally = True)
+app._favicon = ("assets/favicon.ico")
 
 # add this for heroku
 server = app.server

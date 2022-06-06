@@ -27,6 +27,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 PCA.png
+preprocessed data.csv
+preprocessed data 2018.csv
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -77,6 +79,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+.DS_Store
 
 # IPython
 profile_default/

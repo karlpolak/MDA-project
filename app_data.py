@@ -3,6 +3,7 @@ import plotly.express as px
 
 dataset = pd.read_csv('https://mda-project-poland.s3.eu-west-3.amazonaws.com/VAR+results.csv')
 dataset = dataset.query("Year <= 2032")
+clusterdata = pd.read_csv('https://mda-project-poland.s3.eu-west-3.amazonaws.com/cluster.csv')
 
 countries = dataset['Country'].unique()
 
@@ -52,6 +53,7 @@ alpha_list = {'China': 'CHN',
 
 dataset['Continent'] = ''
 dataset['iso_alpha'] = ''
+dataset['cluster'] = 0  # TODO define right cluster in for loop below
 
 continent = []
 for country in countries:

@@ -26,7 +26,27 @@ app._favicon = ("assets/favicon.ico")
 server = app.server
 
 ### Tab 1: bubble map (colour per cluster)
+# Bubble map
+default_year = 2007
+df = dataset.query(f"Year=={default_year}")
+cluster_map = px.scatter_geo(df, 
+                        locations="iso_alpha", 
+                        color="cluster",
+                        hover_name="Country", 
+                        size="Water stress",
+                        projection="natural earth",
+                        size_max=30)  # TODO maybe add some animation (properties animation_frame & animation_group)
 
+# Year Options
+cluster_slider = dcc.Slider(
+        id='id_cluster_year',
+        min=1992,
+        max=2017,
+        step=5,
+        value=2007,
+        marks=None,
+        tooltip={"placement": "bottom", "always_visible": True}
+    )   # TODO make slider values more modular (minimum & maximum from 'year' in dataset)
 
 
 ### Tab 2: bubble map (per region or whole world)
@@ -91,6 +111,13 @@ range_slider = dcc.RangeSlider(id='id_range',
                             pushable=2,
                             marks=None) # TODO make slider values more modular (e.g. min & max from the 'year' column of the dataset)
 
+
+# Input cluster bubble map
+input_cluster = dbc.Row(dbc.Col(
+    html.Div([
+    slider]
+)))
+
 # Input bubble map
 input_bubble = dbc.Row(dbc.Col(
     html.Div([
@@ -112,6 +139,16 @@ app.layout = dbc.Container(
         html.Div(children=[html.H1(children='Water Security'),
                            html.H2(children='MDA Team Poland')],
                  style={'textAlign':'center','color':'black'}),
+        html.Hr(),
+        html.Div(children=[html.H4(children='cluster map ...',id='id_title_cluster')],
+                 style={'textAlign':'center','color':'black'}),
+        dbc.Row(
+            [
+                dbc.Col(input_cluster, md=3),
+                dbc.Col(dcc.Graph(id="id_cluster_map",figure=cluster_map), md=9),
+            ],
+            align="center"
+        ),
         html.Hr(),
         html.Div(children=[html.H4(children='...',id='id_title_bubble')],
                  style={'textAlign':'center','color':'black'}),

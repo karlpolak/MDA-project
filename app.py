@@ -16,6 +16,7 @@ import pandas as pd
 import plotly.express as px
 from pyparsing import col
 
+from app_data import dataset, countries
 
 
 app = dash.Dash(__name__,title='Water security',external_stylesheets=[dbc.themes.CERULEAN],serve_locally = True)
@@ -25,7 +26,6 @@ server = app.server
 
 # dataset
 # dataset = px.data.gapminder()  # some built-in data for now
-from app_data import dataset
 
 
 ### Tab 1: bubble map (per region or whole world)
@@ -76,11 +76,8 @@ line_chart = px.line(df, x="Year", y="Water stress", title=f"Water stress in '{d
 # Country options
 dropdown_country = dcc.Dropdown(
     id='id_country',
-    options=[{"label":'China','value':'China'},
-             {"label":'Finland','value':'Finland'},
-             {"label":'Morocco','value':'Morocco'},
-             ],
-    value='Afghanistan',
+    options=[{"label": country, 'value': country} for country in countries],
+    value='China',
     searchable=False)
 
 # History options

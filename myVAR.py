@@ -199,21 +199,23 @@ def plot_vars(ts):
         ax.tick_params(labelsize=6)
     plt.tight_layout();
 
-def plot_comparison(obj,steps,name,figsize=(10,6)):
+def plot_comparison(obj,steps,name,figsize=(10,6),interval=True):
     """plot a comparison between two series"""
     data=obj.ts
     data_train=obj.ts_train
     results=obj.ts_results
     forecast=pd.concat([data_train[-1:],obj.ts_forecast[:steps]])
-    forecast.lower=pd.concat([data_train[-1:],obj.ts_forecast.lower[:steps]])
-    forecast.upper=pd.concat([data_train[-1:],obj.ts_forecast.upper[:steps]])
+    if interval:
+        forecast.lower=pd.concat([data_train[-1:],obj.ts_forecast.lower[:steps]])
+        forecast.upper=pd.concat([data_train[-1:],obj.ts_forecast.upper[:steps]])
     fig, axes = plt.subplots(nrows=int(np.ceil(len(data.columns)/2)),ncols=2, dpi=150,figsize=figsize)
     for i, (col,ax) in enumerate(zip(data.columns, axes.flatten())):
         forecast[col].plot(legend=True, ax=ax,label='Forecast',linestyle='--',color='r').autoscale(axis='x',tight=True)
-        forecast.lower[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Lower',linestyle=':',color='r').autoscale(axis='x',tight=True)
-        forecast.upper[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Upper',linestyle=':',color='r').autoscale(axis='x',tight=True)
         data[col].plot(legend=True, ax=ax,label='Data');
-        ax.fill_between(forecast[col].index, forecast.lower[col],forecast.upper[col], color='r', alpha=0.2,label='Forecast 95% interval')
+        if interval:
+            forecast.lower[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Lower',linestyle=':',color='r').autoscale(axis='x',tight=True)
+            forecast.upper[col].plot(legend=True, ax=ax,label='Forecast 95% Interval Upper',linestyle=':',color='r').autoscale(axis='x',tight=True)
+            ax.fill_between(forecast[col].index, forecast.lower[col],forecast.upper[col], color='r', alpha=0.2,label='Forecast 95% interval')
         ax.set_title(col + ": Comparison")
         ax.xaxis.set_ticks_position('none')
         ax.yaxis.set_ticks_position('none')

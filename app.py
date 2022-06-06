@@ -38,7 +38,8 @@ bubble_map = px.scatter_geo(df,
                         color="Continent",
                         hover_name="Country", 
                         size="Water stress",
-                        projection="natural earth")  # TODO maybe add some animation (properties animation_frame & animation_group)
+                        projection="natural earth",
+                        size_max=30)  # TODO maybe add some animation (properties animation_frame & animation_group)
 
 # Region Options 
 dropdown_region = dcc.Dropdown(
@@ -66,7 +67,7 @@ slider = dcc.Slider(
 
 ### Tab 2: line chart per country
 # line chart
-default_country = 'Afghanistan'
+default_country = 'China'
 start_date = 2004
 end_date = 2032
 df = dataset.query(f"Country=='{default_country}' & Year>={start_date} & Year<={end_date}")
@@ -75,7 +76,7 @@ line_chart = px.line(df, x="Year", y="Water stress", title=f"Water stress in '{d
 # Country options
 dropdown_country = dcc.Dropdown(
     id='id_country',
-    options=[{"label":'Afghanistan','value':'Afghanistan'},
+    options=[{"label":'China','value':'China'},
              {"label":'Finland','value':'Finland'},
              {"label":'Morocco','value':'Morocco'},
              ],
@@ -157,7 +158,8 @@ def update_map(region, year):
                         color="Continent",
                         hover_name="Country", 
                         size="Water stress",
-                        projection="natural earth")  # TODO maybe add some animation (properties animation_frame & animation_group)
+                        projection="natural earth",
+                        size_max=30)  # TODO maybe add some animation (properties animation_frame & animation_group)
     return title, bubble_map
 
 @app.callback(

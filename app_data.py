@@ -68,4 +68,7 @@ for country in countries:
     if country in Oceania:
         dataset.loc[dataset['Country'] == country, 'Continent'] = 'Oceania'
 
+# our bubble cannot handle negative values => negative water stress is essentially no water stress (zero) after all
+dataset.loc[dataset['Water stress']<0,'Water stress'] = 0
+
 dataset.to_csv('test.csv')

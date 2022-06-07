@@ -1,9 +1,11 @@
+from numpy import NaN
 import pandas as pd
 import plotly.express as px
 
 dataset = pd.read_csv('https://mda-project-poland.s3.eu-west-3.amazonaws.com/VAR+results.csv')
 dataset = dataset.query("Year <= 2032")
-clusterdata = pd.read_csv('https://mda-project-poland.s3.eu-west-3.amazonaws.com/cluster.csv')
+clusterdata = pd.read_csv('https://mda-project-poland.s3.eu-west-3.amazonaws.com/cluster.csv').drop([0,1])
+clusterdata.columns = ['Country', 1992, 1997, 2002, 2007, 2012, 2017, 2018]
 
 countries = dataset['Country'].unique()
 
@@ -13,7 +15,8 @@ Africa = ['Morocco', 'Tunisia', 'Central African Republic', 'Gabon', 'South Afri
 Americas = ['Argentina', 'Brazil', 'Bolivia', 'Suriname', 'El Salvador', 'Haiti', 'Canada', 'United States of America', 'Mexico']
 Oceania = ['Australia', 'new zealand']
 
-alpha_list = {'China': 'CHN',
+alpha_list = {'Afghanistan': 'AFG',
+              'China': 'CHN',
               'Uzbekistan': 'UZB',
               'Tajikistan': 'TJK',
               'Japan': 'JPN',
@@ -53,12 +56,13 @@ alpha_list = {'China': 'CHN',
 
 dataset['Continent'] = ''
 dataset['iso_alpha'] = ''
-dataset['cluster'] = 0  # TODO define right cluster in for loop below
 
 continent = []
 for country in countries:
+    # ISO-3 code
     dataset.loc[dataset['Country'] == country, 'iso_alpha'] = alpha_list[country]
-    
+
+    # Continent
     if country in Asia:
         dataset.loc[dataset['Country'] == country, 'Continent'] = 'Asia'
     if country in Africa:
@@ -69,6 +73,12 @@ for country in countries:
         dataset.loc[dataset['Country'] == country, 'Continent'] = 'Americas'
     if country in Oceania:
         dataset.loc[dataset['Country'] == country, 'Continent'] = 'Oceania'
+    
+    # # Cluster (from cluster analysis)
+    # clusters = clusterdata.loc[clusterdata['Country'] == 'Afghanistan', [1992,1997,2002,2007,2012,2017,2018]].values.flatten().tolist()
+    # for i in 
+
+
 
 # our bubble cannot handle negative values => negative water stress is essentially no water stress (zero) after all
 dataset.loc[dataset['Water stress']<0,'Water stress'] = 0

@@ -297,7 +297,7 @@ def update_chart(country, range):
     ])
     line_chart_bands.update_layout(
         yaxis_title='Water stress (%)',
-        title=f"Water stress in '{country}'",
+        title=f"Water stress in {country}",
         title_x=0.5,
         hovermode="x",
     )

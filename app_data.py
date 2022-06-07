@@ -58,6 +58,8 @@ dataset['iso_alpha'] = ''
 
 dataset['Water stress level'] = dataset['Water stress'].floordiv(25)
 dataset['Water stress level'].values[dataset['Water stress level'].values > 4] = 4
+dataset['Water stress level'].values[dataset['Water stress level'].values < 0] = 0
+
 
 continent = []
 for country in countries:

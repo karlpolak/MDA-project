@@ -10,7 +10,7 @@ conda env create -n mda_project -f environment.yml
 
 #### Requirements.txt
 ```
-pyenv virtualenv 3.9.12 MDA-project
+pyenv virtualenv 3.10.4 MDA-project
 pyenv activate MDA-project
 pip install -r requirements.txt
 ```

@@ -8,12 +8,6 @@ The following command creates an environment called `mda_project`, and downloads
 conda env create -n mda_project -f environment.yml
 ```
 
-#### Heroku usage
-Between step 5 and step 6 in the slides of prof. de Spiegeleer, the following command is required to connect the remote repository to your local machine
-```
-heroku git:remote -a mda-poland
-```
-Then, instead of pushing to heroku `master`, push to `main`. Note that if you push from a branch (e.g. `app`) towards heroku, then do 
-```
-git push heroku app:main
-```
+### App 
+
+This project comes with an [interactive app](https://mda-poland.herokuapp.com). It was initially deployed inside the 'app' branch in this repository. However, for final deployment, a concise and clean version of the code has been put in another repository. That repository can be found [here](https://github.com/karlpolak/MDA-app.git).

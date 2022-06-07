@@ -1,11 +1,10 @@
+import math
 from numpy import NaN
 import pandas as pd
 import plotly.express as px
 
 dataset = pd.read_csv('https://mda-project-poland.s3.eu-west-3.amazonaws.com/VAR+results.csv')
 dataset = dataset.query("Year <= 2032")
-clusterdata = pd.read_csv('https://mda-project-poland.s3.eu-west-3.amazonaws.com/cluster.csv').drop([0,1])
-clusterdata.columns = ['Country', 1992, 1997, 2002, 2007, 2012, 2017, 2018]
 
 countries = dataset['Country'].unique()
 
@@ -57,6 +56,9 @@ alpha_list = {'Afghanistan': 'AFG',
 dataset['Continent'] = ''
 dataset['iso_alpha'] = ''
 
+dataset['Water stress level'] = dataset['Water stress'].floordiv(25)
+dataset['Water stress level'].values[dataset['Water stress level'].values > 4] = 4
+
 continent = []
 for country in countries:
     # ISO-3 code
@@ -73,10 +75,6 @@ for country in countries:
         dataset.loc[dataset['Country'] == country, 'Continent'] = 'Americas'
     if country in Oceania:
         dataset.loc[dataset['Country'] == country, 'Continent'] = 'Oceania'
-    
-    # # Cluster (from cluster analysis)
-    # clusters = clusterdata.loc[clusterdata['Country'] == 'Afghanistan', [1992,1997,2002,2007,2012,2017,2018]].values.flatten().tolist()
-    # for i in 
 
 
 

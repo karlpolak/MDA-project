@@ -53,17 +53,20 @@ server = app.server
 
 
 ### Tab 2: bubble map (per region or whole world)
+colorscales = px.colors.named_colorscales()
+
 # Bubble map
 default_region = 'All'
 default_year = 2007
 df = dataset.query(f"Continent=='{default_region}' & Year=={default_year}")
 bubble_map = px.scatter_geo(df, 
                         locations="iso_alpha", 
-                        color="Continent",
+                        color="Water stress level",
                         hover_name="Country", 
                         size="Water stress",
                         projection="natural earth",
-                        size_max=30)  # TODO maybe add some animation (properties animation_frame & animation_group)
+                        size_max=30,
+                        color_continuous_scale='bluered')  # TODO maybe add some animation (properties animation_frame & animation_group)
 
 # Region Options 
 dropdown_region = dcc.Dropdown(id='id_region',
@@ -78,7 +81,7 @@ dropdown_region = dcc.Dropdown(id='id_region',
     searchable=False)
 
 # Year Options
-slider = dcc.Slider(id='id_year', # BUG:DO NOT SET AN ID FOR THIS, IF YOU WANT, MAKE SURE YOU HAVE ONLY 1 OF THIS 'SLIDER' ON THE PAGE
+slider = dcc.Slider(id='id_year',
         min=2004,
         max=2032,
         step=1,
@@ -229,11 +232,12 @@ def update_map(region, year):
 
     bubble_map = px.scatter_geo(df, 
                         locations="iso_alpha", 
-                        color="Continent",
+                        color="Water stress level",
                         hover_name="Country", 
                         size="Water stress",
                         projection="natural earth",
-                        size_max=30)  # TODO maybe add some animation (properties animation_frame & animation_group)
+                        size_max=30,
+                        color_continuous_scale='bluered')
     return title, bubble_map
 
 
@@ -302,4 +306,4 @@ def update_chart(country, range):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=False)
